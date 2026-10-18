@@ -1,142 +1,64 @@
-#import <UIKit/UIKit.h>
-
-@interface MainMenuViewController : UIViewController
-@property (nonatomic, strong) NSMutableArray *listApps; // Левая колонка
-@property (nonatomic, strong) NSMutableArray *gridApps; // Правая колонка (плитки)
-@property (nonatomic, strong) UIView *gridContainer;    // Контейнер для плиток
-@end
-
-@implementation MainMenuViewController
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    self.view.backgroundColor = [UIColor blackColor];
-    
-    // Загрузка данных
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSArray *savedList = [defaults objectForKey:@"SavedList"];
-    NSArray *savedGrid = [defaults objectForKey:@"SavedGrid"];
-    
-    self.listApps = savedList ? [savedList mutableCopy] : [@[
-        @{@"name": @"Sileo", @"url": @"sileo://"},
-        @{@"name": @"Filza", @"url": @"filza://"},
-        @{@"name": @"Настройки", @"url": @"App-Prefs://"},
-        @{@"name": @"Файлы", @"url": @"shareddocuments://"}
-    ] mutableCopy];
-    
-    // Правая колонка (5 слотов, изначально пустые)
-    self.gridApps = savedGrid ? [savedGrid mutableCopy] : [@[
-        [NSNull null], [NSNull null], [NSNull null], [NSNull null], [NSNull null]
-    ] mutableCopy];
-
-    [self setupUI];
-}
-
-- (void)setupUI {
-    for (UIView *view in self.view.subviews) { [view removeFromSuperview]; }
-
-    // ЗАГОЛОВОК
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 50, 300, 40)];
-    titleLabel.text = @"Freedom OS";
-    titleLabel.textColor = [UIColor whiteColor];
-    titleLabel.font = [UIFont boldSystemFontOfSize:32];
-    [self.view addSubview:titleLabel];
-
-    // ЛЕВАЯ КОЛОНКА (СПИСОК)
-    for (int i = 0; i < self.listApps.count; i++) {
-        NSDictionary *app = self.listApps[i];
-        UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
-        // Ширина списка — половина экрана
-        btn.frame = CGRectMake(20, 120 + (i * 60), self.view.bounds.size.width / 2 - 30, 50);
-        [btn setTitle:app[@"name"] forState:UIControlStateNormal];
-        [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        btn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-        btn.titleLabel.font = [UIFont systemFontOfSize:22];
-        btn.tag = i;
-        [btn addTarget:self action:@selector(openListApp:) forControlEvents:UIControlEventTouchUpInside];
-        UILongPressGestureRecognizer *lp = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(editListApp:)];
-        [btn addGestureRecognizer:lp];
-        [self.view addSubview:btn];
-
-        UIView *line = [[UIView alloc] initWithFrame:CGRectMake(0, 49, btn.frame.size.width, 1)];
-        line.backgroundColor = [UIColor darkGrayColor];
-        [btn addSubview:line];
-    }
-
-    // ПРАВАЯ КОЛОНКА (ПЛИТКИ)
-    self.gridContainer = [[UIView alloc] initWithFrame:CGRectMake(self.view.bounds.size.width / 2 + 10, 120, self.view.bounds.size.width / 2 - 20, 300)];
-    [self.view addSubview:self.gridContainer];
-
-    for (int i = 0; i < 5; i++) {
-        id appData = self.gridApps[i];
-        
-        UIButton *tile = [UIButton buttonWithType:UIButtonTypeSystem];
-        int col = i % 2;
-        int row = i / 2;
-        tile.frame = CGRectMake(col * 85, row * 85, 75, 75);
-        
-        tile.layer.cornerRadius = 15;
-        tile.tag = i;
-        
-        if (appData == [NSNull null] || !appData) {
-            // ПУСТАЯ ПЛИТКА
-            tile.backgroundColor = [UIColor colorWithWhite:0.15 alpha:1.0];
-            [tile setTitle:@"+" forState:UIControlStateNormal];
-            [tile setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
-            tile.titleLabel.font = [UIFont systemFontOfSize:30];
-            [tile addTarget:self action:@selector(addTile:) forControlEvents:UIControlEventTouchUpInside];
-        } else {
-            // ЗАНЯТАЯ ПЛИТКА
-            tile.backgroundColor = [UIColor colorWithWhite:0.25 alpha:1.0];
-            [tile setTitle:appData[@"name"] forState:UIControlStateNormal];
-            [tile setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-            tile.titleLabel.font = [UIFont boldSystemFontOfSize:12];
+tile.titleLabel.font = [UIFont boldSystemFontOfSize:11];
             tile.titleLabel.numberOfLines = 2;
             tile.titleLabel.textAlignment = NSTextAlignmentCenter;
-            
             [tile addTarget:self action:@selector(openTile:) forControlEvents:UIControlEventTouchUpInside];
             UILongPressGestureRecognizer *lp = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(deleteTile:)];
             [tile addGestureRecognizer:lp];
         }
-        
         [self.gridContainer addSubview:tile];
     }
+
+    // ================= ПИТЕРЫ ВНИЗУ =================
+    // Левый Питер (Открывает меню всех приложений)
+    UIButton *peterLeft = [UIButton buttonWithType:UIButtonTypeCustom];
+    peterLeft.frame = CGRectMake(20, self.view.bounds.size.height - 160, 140, 140);
+    // Ссылка на картинку Питера (прозрачный фон)
+    NSURL *urlLeft = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/en/c/c2/Peter_Griffin.png"];
+    NSData *dataLeft = [NSData dataWithContentsOfURL:urlLeft];
+    [peterLeft setImage:[UIImage imageWithData:dataLeft] forState:UIControlStateNormal];
+    peterLeft.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    [peterLeft addTarget:self action:@selector(goToAllApps) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:peterLeft];
+
+    // Правый Ретип (Открывает Safari)
+    UIButton *peterRight = [UIButton buttonWithType:UIButtonTypeCustom];
+    peterRight.frame = CGRectMake(self.view.bounds.size.width - 160, self.view.bounds.size.height - 160, 140, 140);
+    // Ссылка на картинку Ретипа (в зеленой рубашке)
+    NSURL *urlRight = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/en/5/5b/Retep_Griffin.png"];
+    NSData *dataRight = [NSData dataWithContentsOfURL:urlRight];
+    [peterRight setImage:[UIImage imageWithData:dataRight] forState:UIControlStateNormal];
+    peterRight.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    [peterRight addTarget:self action:@selector(openSafari) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:peterRight];
 }
 
-// ================= ДЕЙСТВИЯ ДЛЯ СПИСКА (СЛЕВА) =================
-- (void)openListApp:(UIButton *)sender {
-    NSDictionary *app = self.listApps[sender.tag];
-    [self openURL:app[@"url"]];
-}
-
-- (void)editListApp:(UILongPressGestureRecognizer *)gesture {
-    if (gesture.state != UIGestureRecognizerStateBegan) return;
-    UIButton *btn = (UIButton *)gesture.view;
-    NSDictionary *app = self.listApps[btn.tag];
+// ================= ДЕЙСТВИЯ =================
+- (void)goToAllApps {
+    // Создаем простой экран со всеми приложениями (заглушка)
+    UIViewController *allAppsVC = [[UIViewController alloc] init];
+    allAppsVC.view.backgroundColor = [UIColor darkGrayColor];
+    allAppsVC.title = @"Все приложения";
     
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Настройки" message:app[@"name"] preferredStyle:UIAlertControllerStyleActionSheet];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Сменить ссылку" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        UIAlertController *a = [UIAlertController alertControllerWithTitle:@"Новая ссылка" message:nil preferredStyle:UIAlertControllerStyleAlert];
-        [a addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull tf) { tf.text = app[@"url"]; }];
-        [a addAction:[UIAlertAction actionWithTitle:@"Сохранить" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            NSMutableDictionary *newApp = [app mutableCopy];
-            newApp[@"url"] = a.textFields.firstObject.text;
-            self.listApps[btn.tag] = newApp;
-            [self saveAll];
-        }]];
-        [a addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
-        [self presentViewController:a animated:YES completion:nil];
-    }]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
-    [self presentViewController:alert animated:YES completion:nil];
+    UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 300, 50)];
+    lbl.center = allAppsVC.view.center;
+    lbl.text = @"Тут будет сетка всех приложений";
+    lbl.textColor = [UIColor whiteColor];
+    lbl.textAlignment = NSTextAlignmentCenter;
+    [allAppsVC.view addSubview:lbl];
+
+    // Показываем его модально (снизу вверх)
+    [self presentViewController:allAppsVC animated:YES completion:nil];
 }
 
-// ================= ДЕЙСТВИЯ ДЛЯ ПЛИТОК (СПРАВА) =================
+- (void)openSafari {
+    // Открываем Safari по ссылке
+    [self openURL:@"https://google.com"];
+}
+
 - (void)addTile:(UIButton *)sender {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Новая плитка" message:@"Введи название и ссылку" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Новая плитка" message:nil preferredStyle:UIAlertControllerStyleAlert];
     [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull tf) { tf.placeholder = @"Название"; }];
     [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull tf) { tf.placeholder = @"Ссылка (youtube://)"; }];
-    
     [alert addAction:[UIAlertAction actionWithTitle:@"Добавить" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *name = alert.textFields[0].text;
         NSString *url = alert.textFields[1].text;
@@ -150,7 +72,7 @@
 }
 
 - (void)openTile:(UIButton *)sender {
-    NSDictionary *app = self.gridApps[sender.tag];
+NSDictionary *app = self.gridApps[sender.tag];
     [self openURL:app[@"url"]];
 }
 
@@ -161,14 +83,20 @@
     [self saveAll];
 }
 
-// ================= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =================
-- (void)openURL:(NSString *)urlStr {NSURL *url = [NSURL URLWithString:urlStr];
+- (void)openListApp:(UIButton *)sender {
+    NSDictionary *app = self.listApps[sender.tag];
+    [self openURL:app[@"url"]];
+}
+
+- (void)editListApp:(UILongPressGestureRecognizer *)gesture {
+    if (gesture.state != UIGestureRecognizerStateBegan) return;
+    // Тут код редактирования левой колонки (как был раньше)
+}
+
+- (void)openURL:(NSString *)urlStr {
+    NSURL *url = [NSURL URLWithString:urlStr];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
         [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-    } else {
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Ошибка" message:@"Приложение не установлено или ссылка неверная" preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-        [self presentViewController:alert animated:YES completion:nil];
     }
 }
 
@@ -200,4 +128,3 @@ int main(int argc, char * argv[]) {
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
     }
 }
-

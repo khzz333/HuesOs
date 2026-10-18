@@ -26,7 +26,8 @@
     [self setupUI];
 }
 
-- (BOOL)prefersStatusBarHidden { return YES; }
+// ВОЗВРАЩАЕМ СТАТУС-БАР
+- (BOOL)prefersStatusBarHidden { return NO; }
 
 - (void)setupUI {
     for (UIView *v in self.view.subviews) { [v removeFromSuperview]; }
@@ -45,7 +46,7 @@
     [editBtn addTarget:self action:@selector(addNewListApp) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:editBtn];
 
-    // ЛЕВАЯ КОЛОНКА (СПИСОК)
+    // ЛЕВАЯ КОЛОНКА
     for (int i = 0; i < self.listApps.count; i++) {
         NSDictionary *app = self.listApps[i];
         UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -56,9 +57,7 @@
         btn.titleLabel.font = [UIFont systemFontOfSize:18]; 
         btn.tag = i;
         
-        // Нажатие = открыть
         [btn addTarget:self action:@selector(openListApp:) forControlEvents:UIControlEventTouchUpInside];
-        // Зажатие = редактировать
         UILongPressGestureRecognizer *lp = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(editListApp:)];
         [btn addGestureRecognizer:lp];
         
@@ -144,7 +143,7 @@
     [self presentViewController:nav animated:YES completion:nil];
 }
 
-// ================= ЛЕВОЕ МЕНЮ (СПИСОК) =================
+// ЛЕВОЕ МЕНЮ
 - (void)editListApp:(UILongPressGestureRecognizer *)g {
     if (g.state != UIGestureRecognizerStateBegan) return;
     UIButton *btn = (UIButton *)g.view; NSInteger tag = btn.tag;
@@ -173,7 +172,7 @@
 
 - (void)openListApp:(UIButton *)sender { [self openURL:self.listApps[sender.tag][@"url"]]; }
 
-// ================= ПРАВЫЕ ПЛИТКИ =================
+// ПРАВЫЕ ПЛИТКИ
 - (void)editTile:(UILongPressGestureRecognizer *)g {
     if (g.state != UIGestureRecognizerStateBegan) return;
     UIButton *btn = (UIButton *)g.view; NSInteger tag = btn.tag;
@@ -218,7 +217,15 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor blackColor]; 
-    self.navigationController.navigationBar.hidden = YES;
+    
+    // ВОЗВРАЩАЕМ ВЕРХНЮЮ ПАНЕЛЬ НАВИГАЦИИ
+    self.title = @"Все приложения";
+    self.navigationController.navigationBar.barStyle = UIBarStyleBlack; 
+    self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+    self.navigationController.navigationBar.hidden = NO; 
+
+    // ВОЗВРАЩАЕМ КНОПКУ "НАЗАД"
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Назад" style:UIBarButtonItemStylePlain target:self action:@selector(goBack)];
 
     UISwipeGestureRecognizer *swipeDown = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(goBack)];
     swipeDown.direction = UISwipeGestureRecognizerDirectionDown;
@@ -235,7 +242,8 @@
     
     for (int i = 0; i < self.myApps.count; i++) {
         int c = i % cols; int r = i / cols;
-        UIView *cont = [[UIView alloc] initWithFrame:CGRectMake(sp + (c * (w + sp)), 60 + (r * (h + sp)), w, h)];
+        // Сдвинули вниз, чтобы не перекрывать верхнюю панель
+        UIView *cont = [[UIView alloc] initWithFrame:CGRectMake(sp + (c * (w + sp)), 80 + (r * (h + sp)), w, h)];
         
         UIButton *b = [UIButton buttonWithType:UIButtonTypeCustom]; 
         b.frame = CGRectMake(0, 0, w, w); 
@@ -251,7 +259,7 @@
         [cont addSubview:b];
         [sv addSubview:cont];
     }
-    sv.contentSize = CGSizeMake(self.view.bounds.size.width, (self.myApps.count / cols + 1) * (h + sp) + 50);
+    sv.contentSize = CGSizeMake(self.view.bounds.size.width, (self.myApps.count / cols + 1) * (h + sp) + 100);
 }
 
 - (void)goBack { [self dismissViewControllerAnimated:YES completion:nil]; }

@@ -17,7 +17,7 @@ jobs:
           xcrun -sdk iphoneos clang -arch arm64 -miphoneos-version-min=15.0 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -framework UIKit -framework Foundation main.m -o Payload/FreedomOS.app/FreedomOS
 
           # Кодируем подписью (ad-hoc)
-          codesign -s - --force --deep Payload/FreedomOS.app
+          codesign -s - --force --deep --entitlements entitlements.plist Payload/FreedomOs.app
 
           # Упаковываем в IPA
           zip -r FreedomOS.ipa Payload

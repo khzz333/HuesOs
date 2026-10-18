@@ -2,7 +2,9 @@
 #import <objc/runtime.h>
 
 // Объявляем класс заранее, чтобы компилятор не ругался
+// Объявляем класс заранее, чтобы компилятор не ругался
 @interface AllAppsViewController : UIViewController
+@property (nonatomic, strong) NSArray *apps;
 @end
 
 // ================= ГЛАВНЫЙ ЭКРАН =================

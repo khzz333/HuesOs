@@ -2,7 +2,7 @@
 #import <objc/runtime.h>
 
 @interface AllAppsViewController : UIViewController
-@property (nonatomic, strong) NSArray *apps;
+@property (nonatomic, strong) NSMutableArray *systemApps;
 @end
 
 @interface MainMenuViewController : UIViewController
@@ -34,15 +34,17 @@
     title.textColor = [UIColor whiteColor]; 
     title.font = [UIFont boldSystemFontOfSize:28];
     [self.view addSubview:title];
-    
-    UIButton *addBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    addBtn.frame = CGRectMake(20, 100, 150, 30);
-    [addBtn setTitle:@"+ Добавить" forState:UIControlStateNormal]; 
-    [addBtn setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal]; 
-    addBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-    [addBtn addTarget:self action:@selector(addListApp) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:addBtn];
 
+    // Кнопка редактирования левого списка
+    UIButton *editBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    editBtn.frame = CGRectMake(20, 100, 100, 30);
+    [editBtn setTitle:@"Изменить" forState:UIControlStateNormal];
+    [editBtn setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal];
+    editBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    [editBtn addTarget:self action:@selector(addListApp) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:editBtn];
+
+    // ЛЕВАЯ КОЛОНКА
     for (int i = 0; i < self.listApps.count; i++) {
         NSDictionary *app = self.listApps[i];
         UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -54,6 +56,7 @@
         btn.tag = i;
         [btn addTarget:self action:@selector(openListApp:) forControlEvents:UIControlEventTouchUpInside];
         
+        // Удаление свайпом
         UISwipeGestureRecognizer *swipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(deleteListApp:)];
         swipe.direction = UISwipeGestureRecognizerDirectionLeft;
         [btn addGestureRecognizer:swipe];
@@ -65,6 +68,7 @@
         [btn addSubview:line];
     }
 
+    // ПРАВАЯ КОЛОНКА (ПЛИТКИ)
     for (int i = 0; i < 6; i++) {
         id appData = self.gridApps[i];
         UIButton *tile = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -95,50 +99,25 @@
         [self.view addSubview:tile];
     }
 
-    // ================= ПИТЕРЫ ВНИЗУ =================
-    // Левый Питер (обычный)
+    // ПИТЕРЫ ВНИЗУ
     UIButton *peterLeft = [UIButton buttonWithType:UIButtonTypeCustom];
     peterLeft.frame = CGRectMake(20, self.view.bounds.size.height - 160, 140, 140);
-    NSURL *urlLeft = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/en/c/c2/Peter_Griffin.png"];
-    NSData *dataLeft = [NSData dataWithContentsOfURL:urlLeft];
-    if (dataLeft) {
-        [peterLeft setImage:[UIImage imageWithData:dataLeft] forState:UIControlStateNormal];
-        peterLeft.imageView.contentMode = UIViewContentModeScaleAspectFit;
-    } else {
-        [peterLeft setTitle:@"👨🏻" forState:UIControlStateNormal]; // Запасной вариант
-        peterLeft.titleLabel.font = [UIFont systemFontOfSize:80];
-    }
+    NSData *dataLeft = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/en/c/c2/Peter_Griffin.png"]];
+    if (dataLeft) { [peterLeft setImage:[UIImage imageWithData:dataLeft] forState:UIControlStateNormal]; peterLeft.imageView.contentMode = UIViewContentModeScaleAspectFit; }
     [peterLeft addTarget:self action:@selector(goToAllApps) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:peterLeft];
 
-    // Правый Питер (на унитазе, с милым лицом)
     UIButton *peterRight = [UIButton buttonWithType:UIButtonTypeCustom];
     peterRight.frame = CGRectMake(self.view.bounds.size.width - 160, self.view.bounds.size.height - 160, 140, 140);
-    NSURL *urlRight = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/en/thumb/9/9c/Peter_Griffin_Toilet.png/220px-Peter_Griffin_Toilet.png"];
-    NSData *dataRight = [NSData dataWithContentsOfURL:urlRight];
-    if (dataRight) {
-        [peterRight setImage:[UIImage imageWithData:dataRight] forState:UIControlStateNormal];
-        peterRight.imageView.contentMode = UIViewContentModeScaleAspectFit;
-    } else {
-        [peterRight setTitle:@"🚽" forState:UIControlStateNormal]; // Запасной вариант
-        peterRight.titleLabel.font = [UIFont systemFontOfSize:80];
-    }
+    NSData *dataRight = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/en/thumb/9/9c/Peter_Griffin_Toilet.png/220px-Peter_Griffin_Toilet.png"]];
+    if (dataRight) { [peterRight setImage:[UIImage imageWithData:dataRight] forState:UIControlStateNormal]; peterRight.imageView.contentMode = UIViewContentModeScaleAspectFit; }
     [peterRight addTarget:self action:@selector(openFirefox) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:peterRight];
 }
 
-- (void)openFirefox { 
-    NSURL *url = [NSURL URLWithString:@"firefox://"];
-    if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-    } else {
-        [self openURL:@"https://google.com"]; 
-    }
-}
-
+- (void)openFirefox { [self openURL:@"firefox://"]; }
 - (void)goToAllApps {
     AllAppsViewController *vc = [[AllAppsViewController alloc] init];
-    vc.apps = [self.listApps copy]; 
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
     nav.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:nav animated:YES completion:nil];
@@ -147,47 +126,30 @@
 - (void)addListApp {
     UIAlertController *a = [UIAlertController alertControllerWithTitle:@"Новое приложение" message:nil preferredStyle:UIAlertControllerStyleAlert];
     [a addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"Название"; }];
-    [a addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"Ссылка (tg://)"; }];
-    [a addAction:[UIAlertAction actionWithTitle:@"Добавить" style:UIAlertActionStyleDefault handler:^(UIAlertAction *act) {
+    [a addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"Ссылка"; }];
+    [a addAction:[UIAlertAction actionWithTitle:@"ОК" style:UIAlertActionStyleDefault handler:^(UIAlertAction *act) {
         NSString *n = a.textFields[0].text; NSString *u = a.textFields[1].text;
-        if (n.length > 0 && u.length > 0) { 
-            [self.listApps addObject:@{@"name": n, @"url": u}]; 
-            [self saveAll]; 
-        }
+        if (n.length > 0 && u.length > 0) { [self.listApps addObject:@{@"name": n, @"url": u}]; [self saveAll]; }
     }]];
     [a addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
     [self presentViewController:a animated:YES completion:nil];
 }
 
-- (void)deleteListApp:(UISwipeGestureRecognizer *)g {
-    UIButton *btn = (UIButton *)g.view;
-    [self.listApps removeObjectAtIndex:btn.tag]; 
-    [self saveAll];
-}
-
+- (void)deleteListApp:(UISwipeGestureRecognizer *)g { UIButton *btn = (UIButton *)g.view; [self.listApps removeObjectAtIndex:btn.tag]; [self saveAll]; }
 - (void)addTile:(UIButton *)sender {
-    UIAlertController *a = [UIAlertController alertControllerWithTitle:@"Новая плитка" message:nil preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:@"Плитка" message:nil preferredStyle:UIAlertControllerStyleAlert];
     [a addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"Название"; }];
     [a addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"Ссылка"; }];
     [a addAction:[UIAlertAction actionWithTitle:@"ОК" style:UIAlertActionStyleDefault handler:^(UIAlertAction *act) {
         NSString *n = a.textFields[0].text; NSString *u = a.textFields[1].text;
-        if (n.length > 0 && u.length > 0) { 
-            self.gridApps[sender.tag] = @{@"name": n, @"url": u}; 
-            [self saveAll]; 
-        }
+        if (n.length > 0 && u.length > 0) { self.gridApps[sender.tag] = @{@"name": n, @"url": u}; [self saveAll]; }
     }]];
     [a addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
     [self presentViewController:a animated:YES completion:nil];
 }
 
 - (void)openTile:(UIButton *)sender { [self openURL:self.gridApps[sender.tag][@"url"]]; }
-
-- (void)deleteTile:(UISwipeGestureRecognizer *)g {
-    UIButton *btn = (UIButton *)g.view;
-    self.gridApps[btn.tag] = [NSNull null]; 
-    [self saveAll]; 
-}
-
+- (void)deleteTile:(UISwipeGestureRecognizer *)g { UIButton *btn = (UIButton *)g.view; self.gridApps[btn.tag] = [NSNull null]; [self saveAll]; }
 - (void)openListApp:(UIButton *)sender { [self openURL:self.listApps[sender.tag][@"url"]]; }
 
 - (void)openURL:(NSString *)urlStr {
@@ -201,54 +163,69 @@
 }
 @end
 
+// ================= ЭКРАН ВСЕХ ПРИЛОЖЕНИЙ =================
 @implementation AllAppsViewController
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor blackColor]; 
-    self.title = @"Мои приложения";
+    self.title = @"Все приложения";
+    
+    // Кнопка Назад
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Назад" style:UIBarButtonItemStylePlain target:self action:@selector(goBack)];
     self.navigationController.navigationBar.barStyle = UIBarStyleBlack; 
     self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
-    
+
+    // Свайп слева направо (назад)
+    UISwipeGestureRecognizer *swipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(goBack)];
+    swipe.direction = UISwipeGestureRecognizerDirectionRight;
+    [self.view addGestureRecognizer:swipe];
+
     UIScrollView *sv = [[UIScrollView alloc] initWithFrame:self.view.bounds]; 
     [self.view addSubview:sv];
 
-    int cols = 3; 
-    CGFloat sp = 20.0; 
-    CGFloat w = (self.view.bounds.size.width - (sp * (cols + 1))) / cols; 
-    CGFloat h = w + 20;
+    NSMutableArray *arr = [NSMutableArray array];
+    Class wsC = objc_getClass("LSApplicationWorkspace"); 
+    NSObject *ws = [wsC performSelector:@selector(defaultWorkspace)];
+    NSArray *installed = [ws performSelector:@selector(allInstalledApplications)];
     
-    for (int i = 0; i < self.apps.count; i++) {
+    if (installed) {
+        for (NSDictionary *info in installed) {
+            NSString *n = info[@"CFBundleDisplayName"] ?: info[@"CFBundleName"]; 
+            NSString *b = info[@"CFBundleIdentifier"];
+            if (n && b && ![n isEqualToString:@"Freedom OS"]) { 
+                [arr addObject:@{@"name": n, @"bundleID": b}]; 
+            }
+        }
+    }
+    self.systemApps = [[arr sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *o1, NSDictionary *o2) { return [o1[@"name"] localizedCaseInsensitiveCompare:o2[@"name"]]; }] mutableCopy];
+
+    int cols = 4; CGFloat sp = 20.0; CGFloat w = (self.view.bounds.size.width - (sp * (cols + 1))) / cols; CGFloat h = w + 20;
+    for (int i = 0; i < self.systemApps.count; i++) {
         int c = i % cols; int r = i / cols;
         UIView *cont = [[UIView alloc] initWithFrame:CGRectMake(sp + (c * (w + sp)), 20 + (r * (h + sp)), w, h)];
+        UIButton *b = [UIButton buttonWithType:UIButtonTypeCustom]; b.frame = CGRectMake(0, 0, w, w); b.backgroundColor = [UIColor colorWithWhite:0.2 alpha:1.0]; b.layer.cornerRadius = 15;
         
-        UIButton *b = [UIButton buttonWithType:UIButtonTypeCustom]; 
-        b.frame = CGRectMake(0, 0, w, w); 
-        b.backgroundColor = [UIColor colorWithWhite:0.2 alpha:1.0]; 
-        b.layer.cornerRadius = 20;
-        [b setTitle:self.apps[i][@"name"] forState:UIControlStateNormal];
-        [b setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        b.titleLabel.font = [UIFont boldSystemFontOfSize:14];
-        b.titleLabel.numberOfLines = 2;
-        b.titleLabel.textAlignment = NSTextAlignmentCenter;
+        // Если прав не хватит, иконка не загрузится, но кнопка с названием будет
+        UIImage *ic = [UIImage _applicationIconImageForBundleIdentifier:self.systemApps[i][@"bundleID"] format:0 scale:[UIScreen mainScreen].scale];
+        if (ic) { [b setImage:ic forState:UIControlStateNormal]; b.imageView.contentMode = UIViewContentModeScaleAspectFit; b.imageEdgeInsets = UIEdgeInsetsMake(10, 10, 10, 10); b.backgroundColor = [UIColor clearColor]; }
         
-        [b addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside]; 
-        b.tag = i; 
-        [cont addSubview:b];
-        
+        [b addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside]; b.tag = i; [cont addSubview:b];
+        UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(0, w + 2, w, 20)]; l.text = self.systemApps[i][@"name"]; l.textColor = [UIColor whiteColor]; l.font = [UIFont systemFontOfSize:12]; l.textAlignment = NSTextAlignmentCenter; [cont addSubview:l];
         [sv addSubview:cont];
     }
-    sv.contentSize = CGSizeMake(self.view.bounds.size.width, (self.apps.count / cols + 1) * (h + sp) + 50);
+    sv.contentSize = CGSizeMake(self.view.bounds.size.width, (self.systemApps.count / cols + 1) * (h + sp) + 50);
 }
 
+- (void)goBack { [self dismissViewControllerAnimated:YES completion:nil]; }
+
 - (void)openApp:(UIButton *)sender {
-    NSDictionary *app = self.apps[sender.tag];
-    NSURL *url = [NSURL URLWithString:app[@"url"]];
-    if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-    }
+    NSString *bundleID = self.systemApps[sender.tag][@"bundleID"];
+    Class wsC = objc_getClass("LSApplicationWorkspace"); NSObject *ws = [wsC performSelector:@selector(defaultWorkspace)];
+    [ws performSelector:@selector(openApplicationWithBundleID:) withObject:bundleID];
 }
 @end
 
+// ================= ЗАПУСК =================
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 @property (strong, nonatomic) UIWindow *window;
 @end

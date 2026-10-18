@@ -22,5 +22,7 @@
     <true/>
     <key>UILaunchScreen</key>
     <dict/>
+<key>NSAppleMusicUsageDescription</key>
+<string>Для отображения списка приложений</string>
 </dict>
 </plist>

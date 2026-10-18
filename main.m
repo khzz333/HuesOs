@@ -170,7 +170,9 @@
 
 - (void)editListApp:(UILongPressGestureRecognizer *)gesture {
     if (gesture.state != UIGestureRecognizerStateBegan) return;
-    - (void)openURL:(NSString *)urlStr {
+}
+
+- (void)openURL:(NSString *)urlStr {
     NSURL *url = [NSURL URLWithString:urlStr];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
         [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];

@@ -1,0 +1,29 @@
+name: Build iOS App
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build IPA
+        run: |
+          mkdir Payload
+          mkdir Payload/FreedomOS.app
+          cp Info.plist Payload/FreedomOS.app/
+          
+          # Компилируем код под iPhone (arm64)
+          xcrun -sdk iphoneos clang -arch arm64 -miphoneos-version-min=15.0 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -framework UIKit -framework Foundation main.m -o Payload/FreedomOS.app/FreedomOS
+
+          # Кодируем подписью (ad-hoc)
+          codesign -s - --force --deep Payload/FreedomOS.app
+
+          # Упаковываем в IPA
+          zip -r FreedomOS.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: FreedomOS-IPA
+          path: FreedomOS.ipa

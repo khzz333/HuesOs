@@ -16,6 +16,7 @@ jobs:
       - name: Build Tweak
         run: |
           export PATH=$THEOS/bin:$PATH
+          export THEOS=$HOME/theos
           
           # Создаем Makefile
           cat > Makefile << 'EOF'
@@ -30,20 +31,22 @@ jobs:
           	install.exec "killall -9 SpringBoard"
           EOF
           
-          # Создаем control файл (информация о твике)
+          # Создаем control
           cat > control << 'EOF'
           Package: com.bebra.freedomtweak
           Name: FreedomTweak
           Version: 1.0
           Architecture: iphoneos-arm64
-          Description: Home button redirect to Freedom OS
+          Description: Home button redirect
           Maintainer: Bebra
           Author: Bebra
           Section: Tweaks
           Depends: mobilesubstrate
           EOF
           
-          make package FINALPACKAGE=1
+          # Компилируем
+          make clean
+          make package
 
       - name: Upload DEB
         uses: actions/upload-artifact@v4

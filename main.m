@@ -1,18 +1,17 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
-// Объявляем класс заранее, чтобы компилятор не ругался
-// Объявляем класс заранее, чтобы компилятор не ругался
+// 1. Объявляем классы ЗАРАНЕЕ, чтобы компилятор их видел
 @interface AllAppsViewController : UIViewController
 @property (nonatomic, strong) NSArray *apps;
 @end
 
-// ================= ГЛАВНЫЙ ЭКРАН =================
 @interface MainMenuViewController : UIViewController
 @property (nonatomic, strong) NSMutableArray *listApps;
 @property (nonatomic, strong) NSMutableArray *gridApps;
 @end
 
+// 2. Реализация главного меню
 @implementation MainMenuViewController
 
 - (void)viewDidLoad {
@@ -134,11 +133,7 @@
 }
 @end
 
-// ================= ЭКРАН ВСЕХ ПРИЛОЖЕНИЙ =================
-@interface AllAppsViewController : UIViewController
-@property (nonatomic, strong) NSArray *apps;
-@end
-
+// 3. Реализация экрана со всеми приложениями
 @implementation AllAppsViewController
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -148,8 +143,6 @@
 
     NSMutableArray *arr = [NSMutableArray array];
     Class wsC = objc_getClass("LSApplicationWorkspace"); NSObject *ws = [wsC performSelector:@selector(defaultWorkspace)];
-    
-    // Защита от краша, если API вернет nil
     NSArray *installed = [ws performSelector:@selector(allInstalledApplications)];
     if (installed) {
         for (NSDictionary *info in installed) {
@@ -164,10 +157,8 @@
         int c = i % cols; int r = i / cols;
         UIView *cont = [[UIView alloc] initWithFrame:CGRectMake(sp + (c * (w + sp)), 20 + (r * (h + sp)), w, h)];
         UIButton *b = [UIButton buttonWithType:UIButtonTypeCustom]; b.frame = CGRectMake(0, 0, w, w); b.backgroundColor = [UIColor colorWithWhite:0.2 alpha:1.0]; b.layer.cornerRadius = 15;
-        
         UIImage *ic = [UIImage _applicationIconImageForBundleIdentifier:self.apps[i][@"bundleID"] format:0 scale:[UIScreen mainScreen].scale];
         if (ic) { [b setImage:ic forState:UIControlStateNormal]; b.imageView.contentMode = UIViewContentModeScaleAspectFit; b.imageEdgeInsets = UIEdgeInsetsMake(10, 10, 10, 10); b.backgroundColor = [UIColor clearColor]; }
-        
         [b addTarget:self action:@selector(openApp:) forControlEvents:UIControlEventTouchUpInside]; b.tag = i; [cont addSubview:b];
         UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(0, w + 2, w, 20)]; l.text = self.apps[i][@"name"]; l.textColor = [UIColor whiteColor]; l.font = [UIFont systemFontOfSize:12]; l.textAlignment = NSTextAlignmentCenter; [cont addSubview:l];
         [sv addSubview:cont];
@@ -180,7 +171,7 @@
 }
 @end
 
-// ================= ЗАПУСК =================
+// 4. Запуск приложения
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 @property (strong, nonatomic) UIWindow *window;
 @end
